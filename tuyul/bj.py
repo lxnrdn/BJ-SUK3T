@@ -79,17 +79,17 @@ async def main():
     
     print(f"Jumlah akun: {len(user_ids)}")
     
-    with open('local_proxies.txt', 'r') as proxy_file:
-        local_proxies = proxy_file.read().splitlines()
+    with open('bj_proxy.txt', 'r') as proxy_file:
+        bj_proxy = proxy_file.read().splitlines()
     
     tasks = []
-    proxy_count = len(local_proxies)
+    proxy_count = len(bj_proxy)
     user_count = len(user_ids)
     
     # Ensure each proxy is used at least once
     for i in range(max(proxy_count, user_count)):
         user_id = user_ids[i % user_count]
-        proxy = local_proxies[i % proxy_count]
+        proxy = bj_proxy[i % proxy_count]
         tasks.append(asyncio.ensure_future(connect_to_wss(proxy, user_id)))
     
     await asyncio.gather(*tasks)
