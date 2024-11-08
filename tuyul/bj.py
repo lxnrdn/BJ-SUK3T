@@ -21,6 +21,7 @@ async def connect_to_wss(socks5_proxy, user_id):
             await asyncio.sleep(random.randint(1, 10) / 10)
             custom_headers = {
                 "User-Agent": random_user_agent,
+                "Origin": "chrome-extension://lkbnfiajjmbhnfledhphioinpickokdi"
             }
             ssl_context = ssl.create_default_context()
             ssl_context.check_hostname = False
@@ -55,8 +56,9 @@ async def connect_to_wss(socks5_proxy, user_id):
                                 "user_id": user_id,
                                 "user_agent": custom_headers['User-Agent'],
                                 "timestamp": int(time.time()),
-                                "device_type": "desktop",
-                                "version": "4.28.1",
+                                "device_type": "extension",
+                                "version": "4.26.2",
+                                "extension_id": "lkbnfiajjmbhnfledhphioinpickokdi"
                             }
                         }
                         logger.debug(auth_response)
@@ -72,13 +74,25 @@ async def connect_to_wss(socks5_proxy, user_id):
 
 
 async def main():
-    #get UID cek tutor
-    _user_id = input('Masukan UID suketnya ges: ')
-    with open('proxy.txt', 'r') as file:
-            proxy = file.read().splitlines()
-    tasks = [asyncio.ensure_future(connect_to_wss(i, _user_id)) for i in proxy]
+    with open('user_id.txt', 'r') as user_file:
+        user_ids = user_file.read().splitlines()
+    
+    print(f"Jumlah akun: {len(user_ids)}")
+    
+    with open('proxy.txt', 'r') as proxy_file:
+        proxy = proxy_file.read().splitlines()
+    
+    tasks = []
+    proxy_count = len(proxy)
+    user_count = len(user_ids)
+    
+    # Ensure each proxy is used at least once
+    for i in range(max(proxy_count, user_count)):
+        user_id = user_ids[i % user_count]
+        proxy = proxy[i % proxy_count]
+        tasks.append(asyncio.ensure_future(connect_to_wss(proxy, user_id)))
+    
     await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
-    #letsgo
     asyncio.run(main())
